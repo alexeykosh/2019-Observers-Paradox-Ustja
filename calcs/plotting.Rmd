@@ -1,0 +1,111 @@
+---
+title: "preprocessing_explore"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(ggplot2)
+
+df <- read.csv('position.csv')
+
+for (i in names(table(df$Individual))){df[df$Individual == i,]$pos <- df[df$Individual == i,]$pos/max(df[df$Individual == i,]$pos)}
+
+df <- na.omit(df)
+```
+
+
+
+
+
+```{r}
+ggplot(df[df$Binary_response == 'nondialectal' & df$Individual %in% c('анс', 'нпо', 'ннт', 'пфп'),], aes(x=pos, color=Individual))+
+  geom_density()
+
+ggsave('dencity_adj_nond.jpg', width = 7, height = 4)
+```
+```{r}
+
+ggplot(df, aes(x=pos, color=Binary_response))+
+  geom_density()
+
+ggsave('dencity_adj.jpg', width = 7, height = 4)
+
+```
+```{r}
+# ggplot(df, aes(x=pos, color=Binary_response))+
+#   geom_density()
+
+df
+```
+
+```{r}
+df_kto <- read.csv('kto_hto_pos.csv')
+
+for (i in names(table(df_kto$Subject))){
+  df_kto[df_kto$Subject == i,]$pos = df_kto[df_kto$Subject == i,]$pos/max(df_kto[df_kto$Subject == i,]$pos)}
+
+```
+
+
+```{r}
+df_kto$Num[df_kto$Num == 0] <- 'standart'
+
+df_kto$Num[df_kto$Num == 1] <- 'dialectal'
+
+
+df_kto <- na.omit(df_kto)
+
+df_kto
+```
+
+```{r}
+ggplot(df_kto, aes(x=pos, color=Num))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+
+ggsave('dencity_ans_density.jpg', width = 7, height = 4)
+```
+
+```{r}
+
+
+ggplot(df_kto[df_kto$Subject %in% c('анс1925', 'лсо1941', 'сек1930', 'нпо1965', 'егп1928') & df_kto$Num == 'dialectal',], aes(x=pos, color=Subject))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+
+```
+
+```{r}
+ggplot(df_kto[df_kto$Subject %in% c('анс1925', 'лсо1941', 'сек1930', 'нпо1965', 'егп1928'),], aes(x=pos, color=Num))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+```
+
+
+```{r}
+ggplot(df_kto[df_kto$Subject == 'сек1930',], aes(x=pos, color=Num))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+
+ggsave('dencity_sek1930.jpg', width = 7, height = 4)
+```
+
+```{r}
+ggplot(df_kto[df_kto$Subject == 'нпо1965',], aes(x=pos, color=Num))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+
+ggsave('dencity_npo1965.jpg', width = 7, height = 4)
+```
+
+```{r}
+ggplot(df_kto, aes(x=pos, color=Num))+
+  geom_density()+
+  scale_x_continuous(labels = scales::percent)
+
+# ggsave('dencity_kto_hto_all.jpg', width = 7, height = 4)
+```
+
+
