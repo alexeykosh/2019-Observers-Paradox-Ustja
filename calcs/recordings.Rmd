@@ -1,0 +1,470 @@
+---
+title: "plotting_from_big_dataset"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(ggplot2)
+library(plyr)
+
+df <- read.csv('all_in_one.csv')
+
+df
+```
+
+```{r}
+sort(table(df$Record))
+```
+
+## File 20130702a-nap
+
+```{r}
+sort(table(df[df$Record == '20130702a-nap', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130702a-nap' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker nap')
+```
+
+
+```{r}
+
+df_count <- data.frame(count(df[df$Record == '20130702a-nap' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable e or ja, speaker nap')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130702a-nap' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker nap')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130702a-nap' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker nap')
+```
+
+
+### FIle 20140629a-nxo-2
+
+```{r}
+sort(table(df[df$Record == '20140629a-nxo-2', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140629a-nxo-2' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker nxo')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140629a-nxo-2' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable e or ja, speaker nxo')
+```
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140629a-nxo-2' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker nxo')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140629a-nxo-2' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker nxo')
+```
+
+
+### File
+
+```{r}
+sort(table(df[df$Record == '20140628d-mgb', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140628d-mgb' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker мгб1949')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140628d-mgb' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable e or ja, speaker мгб1949')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140628d-mgb' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker мгб1949')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140628d-mgb' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker мгб1949')
+```
+
+### File 20140623c-ndo
+
+```{r}
+sort(table(df[df$Record == '20140623c-ndo', ]$var))
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140623c-ndo' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker ndo')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140623c-ndo' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja, speaker ndo')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140623c-ndo' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker ndo')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140623c-ndo' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker mgb')
+```
+
+### File 20140624e-lso
+
+```{r}
+sort(table(df[df$Record == '20140624e-lso', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624e-lso' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker lso')
+```
+
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624e-lso' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja, speaker lso')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624e-lso' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker lso')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624e-lso' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker lso')
+```
+
+### File 20130705c-egp 
+
+```{r}
+sort(table(df[df$Record == '20130705c-egp', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130705c-egp' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker egp')
+```
+
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130705c-egp' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja, speaker egp')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130705c-egp' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker egp')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20130705c-egp' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker egp')
+```
+
+### File 20140626a-vap-1
+
+```{r}
+sort(table(df[df$Record == '20140626a-vap-1', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140626a-vap-1' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker vap')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140626a-vap-1' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja, speaker vap')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140626a-vap-1' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker vap')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140626a-vap-1' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker vap')
+```
+
+### File 20140624a-iip
+
+```{r}
+sort(table(df[df$Record == '20140624a-iip', ]$var))
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624a-iip' & df$var == 'sja_e_vs_ja', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja, speaker iip')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624a-iip' & df$var == 'sja_v_or', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable sja_2, speaker iip')
+```
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624a-iip' & df$var == 'adj', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable adj, speaker iip')
+```
+
+
+```{r}
+df_count <- data.frame(count(df[df$Record == '20140624a-iip' & df$var == 'kto', ], c('Num','pos', 'Record')))
+
+df_count[df_count$pos == 1,]$freq <- df_count[df_count$pos == 1,]$freq/sum(df_count[df_count$pos == 1,]$freq)
+
+df_count[df_count$pos == 2,]$freq <- df_count[df_count$pos == 2,]$freq/sum(df_count[df_count$pos == 2,]$freq)
+
+ggplot(df_count, aes(x=pos, y=freq, fill=Num))+
+         geom_bar(stat = 'identity')+
+  ggtitle('Variable kto, speaker iip')
+```
+
