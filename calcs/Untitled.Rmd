@@ -1,0 +1,347 @@
+---
+title: "analysis"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plyr)
+library(binom)
+library(dplyr)
+library(grid)
+library(gridExtra)
+```
+
+### Plotting of the full dataset: 
+
+```{r}
+
+tableau <- read.csv('abosulte_final_data_280219.csv')
+
+head(tableau)
+```
+
+
+
+Заплотим все переменные:
+
+```{r}
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data$year_of_birth <- as.numeric(data$year_of_birth)
+
+df <- data[data$year_of_birth < 1940,]
+
+dat <-  as.data.frame(cbind(df$position, df$realization_class))
+
+dat$V2 <- as.numeric(dat$V2)
+
+dat <- na.omit(dat)
+
+
+dat[dat$V2 == 3,]$V2 <- 1 # dialect
+dat[dat$V2 == 4,]$V2 <- 0
+
+
+
+
+
+g1 <- ggplot(data=dat, aes(V1, V2))+
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+  ylim(0, 1)+
+  ggtitle('< 1940')
+
+
+df <- data[data$year_of_birth > 1940 & data$year_of_birth < 1960,]
+
+dat <-  as.data.frame(cbind(df$position, df$realization_class))
+
+dat$V2 <- as.numeric(dat$V2)
+
+dat <- na.omit(dat)
+
+dat[dat$V2 == 3,]$V2 <- 1 # dialect
+dat[dat$V2 == 4,]$V2 <- 0
+
+
+g2 <- ggplot(data=dat, aes(V1, V2))+
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+  ylim(0, 1)+
+  ggtitle('> 1940, < 1960')
+
+
+df <- data[data$year_of_birth > 1960,]
+
+dat <-  as.data.frame(cbind(df$position, df$realization_class))
+
+dat$V2 <- as.numeric(dat$V2)
+
+dat <- na.omit(dat)
+
+dat[dat$V2 == 3,]$V2 <- 1 # dialect
+dat[dat$V2 == 4,]$V2 <- 0
+
+
+g3 <- ggplot(data=dat, aes(V1, V2))+
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+  ylim(0, 1)+
+  ggtitle('> 1960')
+
+
+grid.arrange(g1, g2, g3, nrow=1)
+```
+
+Зададим функцию:
+
+```{r}
+
+plot_var <- function(var){
+
+  data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$var == var,]
+  
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  
+  df <- data[data$year_of_birth < 1940,]
+  
+  dat <-  as.data.frame(cbind(df$position, df$realization_class))
+  
+  dat$V2 <- as.numeric(dat$V2)
+  
+  dat <- na.omit(dat)
+  
+  
+  dat[dat$V2 == 3,]$V2 <- 1 # dialect
+  dat[dat$V2 == 4,]$V2 <- 0
+  
+  
+  
+  
+  
+  g1 <- ggplot(data=dat, aes(V1, V2))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    ylim(0, 1)+
+    ggtitle('< 1940')
+  
+  
+  df <- data[data$year_of_birth > 1940 & data$year_of_birth < 1960,]
+  
+  dat <-  as.data.frame(cbind(df$position, df$realization_class))
+  
+  dat$V2 <- as.numeric(dat$V2)
+  
+  dat <- na.omit(dat)
+  
+  dat[dat$V2 == 3,]$V2 <- 1 # dialect
+  dat[dat$V2 == 4,]$V2 <- 0
+  
+  
+  g2 <- ggplot(data=dat, aes(V1, V2))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    ylim(0, 1)+
+    ggtitle('> 1940, < 1960')
+  
+  
+  df <- data[data$year_of_birth > 1960,]
+  
+  dat <-  as.data.frame(cbind(df$position, df$realization_class))
+  
+  dat$V2 <- as.numeric(dat$V2)
+  
+  dat <- na.omit(dat)
+  
+  dat[dat$V2 == 3,]$V2 <- 1 # dialect
+  dat[dat$V2 == 4,]$V2 <- 0
+  
+  
+  g3 <- ggplot(data=dat, aes(V1, V2))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    ylim(0, 1)+
+    ggtitle('> 1960')
+  
+  
+  grid.arrange(g1, g2, g3, nrow=1, 
+               top = textGrob(sprintf( "Variable: %s", var) ,gp=gpar(fontsize=20,font=3)))
+
+}
+```
+
+Заплоттим:
+
+```{r}
+plot_var('adj')
+```
+
+```{r}
+plot_var('ei')
+```
+
+```{r}
+plot_var('sh')
+```
+
+```{r}
+plot_var('one')
+```
+
+```{r}
+plot_var('sja_e_vs_ja')
+```
+
+```{r}
+plot_var('sja_v_or')
+```
+
+### Logistic regression
+
+```{r}
+head(tableau)
+```
+
+Регрессии по переменным:
+
+```{r}
+
+fit_var <- function(var){
+
+  data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$var == var,]
+  
+  data$year_of_birth <- scale(data$year_of_birth)
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  data$position <- as.numeric(data$position)
+  data$position<- scale(data$position)
+  
+  # ggplot(data, aes(x = position, y = year_of_birth))+
+  #   geom_point()
+  
+  fit <- lme4::glmer(realization_class ~  position + year_of_birth + (1 | speaker), data, family = 'binomial', lme4::glmerControl(optimizer = 'bobyqa'))
+  
+  summary(fit)
+  
+}
+```
+
+
+```{r}
+fit_var('adj')
+```
+
+```{r}
+fit_var('ei')
+```
+
+```{r}
+fit_var('sh')
+```
+
+```{r}
+fit_var('one')
+```
+
+```{r}
+fit_var('sja_e_vs_ja')
+```
+
+```{r}
+fit_var('sja_v_or')
+```
+
+
+Регрессии по годам:
+
+```{r}
+
+  data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$year_of_birth < 1940,]
+  
+  data$year_of_birth <- scale(data$year_of_birth)
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  data$position <- as.numeric(data$position)
+  data$position<- scale(data$position)
+  
+  # ggplot(data, aes(x = position, y = year_of_birth))+
+  #   geom_point()
+  
+  fit <- lme4::glmer(realization_class ~  position + year_of_birth + (1 | speaker), data, family = 'binomial', lme4::glmerControl(optimizer = 'bobyqa'))
+  
+  summary(fit)
+
+```
+
+```{r}
+  data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$year_of_birth < 1940,]
+  
+  data$year_of_birth <- scale(data$year_of_birth)
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  data$position <- as.numeric(data$position)
+  data$position<- scale(data$position)
+  
+  # ggplot(data, aes(x = position, y = year_of_birth))+
+  #   geom_point()
+  
+  fit <- lme4::glmer(realization_class ~  position + year_of_birth + (1 | speaker), data, family = 'binomial', lme4::glmerControl(optimizer = 'bobyqa'))
+  
+  summary(fit)
+```
+
+
+### Scaling test
+
+```{r}
+  data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$var == 'sja_v_or',]
+
+  
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  
+  df <- data[data$year_of_birth < 1940,]
+  
+  dat <-  as.data.frame(cbind(df$position, df$realization_class))
+  
+  dat$V2 <- as.numeric(dat$V2)
+  
+  dat <- na.omit(dat)
+  
+  
+  dat[dat$V2 == 3,]$V2 <- 1 # dialect
+  dat[dat$V2 == 4,]$V2 <- 0
+  
+  
+  
+  
+  
+  g1 <- ggplot(data=dat, aes(V1, V2))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    ylim(0, 1)+
+    ggtitle('< 1940')
+  
+    data <- tableau[tableau$realization_class %in% c('cons', 'inn') & tableau$var == 'sja_v_or',]
+
+  
+  data$year_of_birth <- as.numeric(data$year_of_birth)
+  
+  df <- data[data$year_of_birth < 1940,]
+  
+  dat <-  as.data.frame(cbind(scale(as.numeric(df$position)), df$realization_class))
+  
+  dat$V2 <- as.numeric(dat$V2)
+  
+  dat <- na.omit(dat)
+  
+  
+  dat[dat$V2 == 3,]$V2 <- 1 # dialect
+  dat[dat$V2 == 4,]$V2 <- 0
+  
+  
+  
+  
+  
+  g2 <- ggplot(data=dat, aes(V1, V2))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    ylim(0, 1)+
+    ggtitle('< 1940')
+  
+  
+  grid.arrange(g1, g2, nrow=1)
+```
+
