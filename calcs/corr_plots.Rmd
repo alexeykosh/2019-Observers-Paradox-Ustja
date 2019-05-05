@@ -1,0 +1,647 @@
+---
+title: "correlation_plotting"
+output: html_document
+---
+
+```{r}
+Sys.setlocale(,"ru_RU")
+library(gridExtra)
+```
+
+
+```{r}
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data$scaled_position <- scale(data$position)
+
+data$scaled_yob <- scale(data$year_of_birth)
+
+data[] <- lapply(data, as.integer)
+
+data <- na.omit(data)
+
+data <- data[c('speaker', 'audio', 'realization_class', 'scaled_position', 'sex', 'scaled_yob', 'var')]
+
+names <- colnames(data)
+
+suffStat <- list(C = cor(data)
+                 , n = nrow(data))
+
+
+pc.fit <- pc(suffStat, indepTest = gaussCItest, p = ncol(data), alpha = 0.00001, labels = names)
+
+plot(pc.fit, main = " ")
+```
+```{r}
+library(ggplot2)
+
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data <- na.omit(data)
+
+data$realization_class_bin[data$realization_class == 'inn'] = 1
+data$realization_class_bin[data$realization_class == 'cons'] = 0
+
+data1 <- na.omit(data)
+
+# ggplot(data, aes(year_of_birth, as.numeric(realization_class)))+
+#   geom_smooth(method = "loess")+
+#   geom_point()
+```
+
+```{r}
+data
+```
+
+```{r}
+ggplot(data[data$position < mean(data$position),], aes(x=realization_class, y=scale(position)))+
+  geom_violin()
+```
+
+
+```{r}
+ggplot(data, aes(y=year_of_birth, x=sex))+
+  geom_violin()+
+  xlab('Gender')+
+  ylab('Year of birth')
+
+ggsave('sex_birth.jpg', width = 7, height = 4)
+```
+
+```{r}
+ggplot(data, aes(x=var))+
+  geom_histogram(stat='count')+
+  xlab('Variable')
+
+ggsave('vars.jpg', width = 7, height = 4)
+```
+
+
+```{r}
+ggplot(data, aes(x=year_of_birth))+
+  geom_histogram(binwidth = 2)
+```
+
+
+```{r}
+data
+```
+
+all 
+
+```{r}
+library(sjPlot)
+
+# contrasts(data1$realization_class)
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1|var) - 1, data = data,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+mean(data$position)
+```
+
+
+less than mean: 
+
+```{r}
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1|var) - 1, data = data[data$position < median(data$position),],
+    family = binomial("logit"))
+summary(lmm) 
+
+plot_model(lmm, type = "pred")
+```
+
+
+```{r}
+lmm <- glmer(realization_class_bin ~ year_of_birth + (1| position) + (1 | sex/speaker) + (1 | audio) + (1|var) - 1, data = data,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+library(sjPlot)
+
+contrasts(data1$realization_class)
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + scale(year_of_birth) + (1 | audio) + (1|var) - 1, data = data,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+lmm <- glmer(realization_class ~ var + (1 | position) + (1 | sex/speaker) + (1 | year_of_birth) + (1 | audio) - 1, data = data,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+SH:
+
+
+```{r}
+library(lme4)
+# 
+library(sjPlot)
+
+contrasts(data1$realization_class)
+
+data_sh <- data[data$var == 'sh',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_sh,
+    family = binomial("logit"))
+summary(lmm) 
+
+```
+
+adj 
+
+```{r}
+data_adj <- data[data$var == 'adj',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_adj,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_sja1 <- data[data$var == 'sja1',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_sja1,
+    family = binomial("logit"))
+summary(lmm) 
+
+```
+
+```{r}
+data_one <- data[data$var == 'one',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_one,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_sja2 <- data[data$var == 'sja2',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_sja2,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_ei <- data[data$var == 'ei',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_ei,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_diss <- data[data$var == 'diss',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_diss,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+data_ae <- data[data$var == 'ae',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_ae,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_pr <- data[data$var == 'prep_pron',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_pr,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_tu <- data[data$var == 'tu',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_tu,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+data_1940 <- data[data$year_of_birth < 1940,]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1940,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_1940_1960 <- data[data$year_of_birth > 1940 & data$year_of_birth < 1960,]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1940_1960,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+data_1960 <- data[data$year_of_birth > 1960,]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1960,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_male <- data[data$sex == 'male',]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 |speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_male,
+    family = binomial("logit"))
+summary(lmm)
+
+```
+
+```{r}
+data_female <- data[data$sex == 'female',]
+
+lmm <- glmer(realization_class ~ scale(position) + (1 |speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_female,
+    family = binomial("logit"))
+summary(lmm)
+```
+
+
+```{r}
+
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data <- na.omit(data)
+
+data1 <- na.omit(data)
+
+data$realization_class <- as.character(data$realization_class)
+
+data$realization_class[data$realization_class == 'inn'] <- 0
+
+data$realization_class[data$realization_class == 'cons'] <- 1
+
+data$realization_class <- as.integer(data$realization_class)
+
+data_mean <- data[data$position < mean(data$position),]
+
+ggplot(data_mean, aes(x=position, y=realization_class))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="red")+
+    # geom_smooth(method = 'lm', color = 'green')+
+    geom_smooth()+
+    ylim(0, 1)+
+    facet_wrap(~ var)
+```
+
+```{r}
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data <- na.omit(data)
+
+data1 <- na.omit(data)
+
+# data$realization_class <- as.character(data$realization_class)
+
+# data$realization_class[data$realization_class == 'inn'] <- 1
+# 
+# data$realization_class[data$realization_class == 'cons'] <- 0
+
+# data$realization_class <- as.integer(data$realization_class)
+
+# data_mean <- data[data$position < mean(data$position),]
+
+ggplot(data[data$sex == 'male',], aes(x=position, y=realization_class))+
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="red")+
+    # geom_smooth(method = 'lm', color = 'green')+
+    # geom_smooth(se=TRUE)+
+    ylim(0, 1)+
+    facet_wrap(~ audio)
+
+ggsave("male_audio_2.jpg", width = 20, height = 12)
+```
+
+
+```{r}
+ggplot(data, aes(x=realization_class))+
+    geom_bar()+
+    facet_wrap(~ audio)
+
+ggsave("var_plot_1.jpg", width = 20, height = 12)
+```
+
+
+```{r}
+data_rec <- data[data$audio %in% c('20150716b-sek-1', '20160624c-nfm', '20140702m-mdn', '20140624d-sek', '20140627a-nvt-ait', 
+                       '20130702a-nap', '20140628d-mgb', '20130702c-lpg', '20130702c-lpg', '20130702b-nvt', '20150719f-nfm', 
+                       '20140624e-lso', '20150713b-lgp', '20130701d-avm', '20140624b-egp-1', '20160625g-mjp-1', '20130705c-egp',
+                       '20140623c-ndo', '20160629j-mik', '20140624a-iip', '20140701f-ppp-2', '20140704a-nnt-1') & data$var == 'sh',]
+
+
+ggplot(data_rec, aes(x=scale(position), y=realization_class))+
+    # geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="blue")+
+    # geom_smooth(method = 'lm', color = 'green')+
+    geom_smooth()+
+    ylim(0, 1)+
+    facet_wrap(~ audio)
+```
+
+
+correct data
+
+```{r}
+
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data$scaled_position <- scale(data$position)
+
+data$scaled_yob <- scale(data$year_of_birth)
+
+# data[] <- lapply(data, as.integer)
+
+data <- na.omit(data)
+
+data <- data[c('speaker', 'audio', 'realization_class', 'scaled_position', 'sex', 'scaled_yob', 'var')]
+
+library(MASS)
+
+data$realization_class_bin[data$realization_class == 'inn'] = 0
+data$realization_class_bin[data$realization_class == 'cons'] = 1
+
+
+full.model <- glm(realization_class_bin ~ scaled_position + sex + speaker + scaled_yob + audio + var, data = data)
+step.model <- stepAIC(full.model, direction = "both", 
+                      trace = FALSE)
+summary(step.model)
+
+# lmm <- glmer(realization_class ~ scale(position) + (1 | sex/speaker) + scale(year_of_birth) + (1 | audio) + (1|var) - 1, data = data,
+#     family = binomial("logit"))
+# summary(lmm) 
+
+```
+
+```{r}
+data
+```
+
+
+Stepwise regression:
+
+
+```{r}
+library(tidyverse)
+library(caret)
+library(leaps)
+```
+
+```{r}
+set.seed(123)
+# Set up repeated k-fold cross-validation
+train.control <- caret::trainControl(method = "cv", number = 10)
+# Train the model
+step.model <- caret::train(realization_class ~ scaled_position + sex + speaker + scaled_yob + audio + var, data = data,
+                    method = "leapBackward",
+                    tuneGrid = data.frame(nvmax = 1:6)
+                    # method="glm", 
+                    # family=binomial()
+                    )
+step.model$results
+```
+
+```{r}
+varImp(step.model)
+```
+
+```{r}
+step.model$bestTune
+```
+
+
+```{r}
+summary(step.model$finalModel)
+```
+
+
+```{r}
+# Train the model
+step.model <-  caret::train(realization_class ~ scaled_position + sex + speaker + scaled_yob + audio + var, data = data,
+                    method = "lmStepAIC", 
+                    trControl = train.control,
+                    trace = FALSE
+                    )
+# Model accuracy
+step.model$results
+# Final model coefficients
+step.model$finalModel
+# Summary of the model
+summary(step.model$finalModel)
+
+varImp(step.model)
+```
+
+```{r}
+set.seed(123)
+# Set up repeated k-fold cross-validation
+train.control <- caret::trainControl(method = "cv", number = 10)
+# Train the model
+step.model <- caret::train(realization_class ~ scaled_position + sex + speaker + scaled_yob + audio , data = data[data$var == 'sh',],
+                    method = "leapBackward",
+                    tuneGrid = data.frame(nvmax = 1:6),
+                    trControl = train.control,
+                    # method="glm", 
+                    # family=binomial()
+                    
+                    )
+step.model$results
+
+data[data$var == 'sh',]
+```
+
+
+```{r}
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data$year_of_birth <- as.numeric(data$year_of_birth)
+
+df <- data[data$year_of_birth < 1940,]
+
+g1 <- ggplot(df, aes(x=realization_class))+
+    geom_bar()+
+    ggtitle('< 1940')
+
+
+df <- data[data$year_of_birth > 1940 & data$year_of_birth < 1960,]
+
+g2 <- ggplot(df, aes(x=realization_class))+
+    geom_bar()+
+    ggtitle('> 1940 < 1960')
+
+
+df <- data[data$year_of_birth > 1960,]
+
+g3 <- ggplot(df, aes(x=realization_class))+
+    geom_bar()+
+    ggtitle('> 1960')
+
+
+grid.arrange(g1, g2, g3, nrow=1)
+```
+
+
+MEAN testing:
+
+```{r}
+
+b <- 1
+
+for (i in unique(data$audio)){
+  
+  subst <- data[data$audio == i,]
+  
+  b <- c(b, max(subst$position))
+  
+}
+
+mean(b)
+```
+```{r}
+
+b_d <- data.frame(b)
+
+b_d$b <- as.difftime(b_d$b/1000, units = 'secs')
+
+
+
+ggplot(data=b_d, aes(x=b))+
+  scale_x_time()+
+  geom_density()+
+  xlab('Time (in hrs)')+
+  geom_vline(xintercept = mean(b_d$b), color="blue")+
+  geom_vline(xintercept = median(b_d$b), color="red")
+
+ggsave('mean_median.jpg', width = 7, height = 4)
+```
+
+```{r}
+lmm <- glmer(realization_class_bin ~ year_of_birth + (1| position) + (1 | sex/speaker) + (1 | audio) + (1|var) - 1, data = data[data$position < median(b),],
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_adj <- data[data$var == 'adj' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_adj,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+
+```{r}
+data_adj <- data[data$var == 'sh' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_adj,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_sja1 <- data[data$var == 'sja1' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_sja1,
+    family = binomial("logit"))
+summary(lmm) 
+
+```
+
+```{r}
+data_one <- data[data$var == 'one' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_one,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_sja2 <- data[data$var == 'sja2' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_sja2,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_ei <- data[data$var == 'ei' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_ei,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_diss <- data[data$var == 'diss' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_diss,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+data_ae <- data[data$var == 'ae' & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) - 1, data = data_ae,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+table(data$var)
+```
+
+
+```{r}
+data_1940 <- data[data$year_of_birth < 1940 & data$position < median(b),]
+
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1940,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+```{r}
+data_1940_1960 <- data[data$year_of_birth > 1940 & data$year_of_birth < 1960 & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1940_1960,
+    family = binomial("logit"))
+summary(lmm) 
+```
+
+
+```{r}
+data_1960 <- data[data$year_of_birth > 1960 & data$position < median(b),]
+
+lmm <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1| year_of_birth) + (1 | audio) + (1| var) - 1, data = data_1960,
+    family = binomial("logit"))
+summary(lmm) 
+```
