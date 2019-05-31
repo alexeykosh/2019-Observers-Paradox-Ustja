@@ -1,0 +1,618 @@
+---
+title: "Observer's paradox: data from the interviews in the Ustja River Basin Corpus"
+output: rmdformats::readthedown
+# bibliography: /Users/Alexey/Documents/GitHub/diploma/calcs/conlab/biblo.bib 
+---
+
+```{r knitr_init, echo=FALSE, cache=FALSE, results='hide'}
+library(knitr)
+library(rmdformats)
+
+# Global options
+# options(max.print="75")
+# opts_chunk$set(echo=FALSE,
+# 	             cache=TRUE,
+#                prompt=FALSE,
+#                tidy=TRUE,
+#                comment=NA,
+#                message=FALSE,
+#                warning=FALSE)
+# opts_knit$set(width=75)
+# knitr::opts_knit$set(global.device = TRUE)
+```
+
+*Author: Alexey Koshevoy (supervized by Michael Daniel)*
+
+## Other parts of the project: 
+
+* [Preprocessing](https://github.com/alexeykosh/diploma/blob/master/calcs/data_preprocessing.ipynb)
+
+## Data description
+
+The data used in this study is a subset of the data from the Ustja River Basin corpus (see von Waldenfels et al., 2014). It is a moderately small dialectal corpora (around 215.000 tokens, of which around 180.000 belongs to speakers of the Ustja dialect of Russian language). The dataset used in this project contains a sample of 178 interviews from the corpora (belonging to 135 different speakers), which were annotated by different people in order to retrieve information about particular variables -- 14 in total, concerning primarily phonetics (see full list in Daniel et al., in press). The main information that was stored about a particular variable at a particular timestamp, is whether it has dialectal realization or not. The overall dataframe contains 24.563 recordings.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# loading packages
+library(tidyverse)
+library(DT)
+library(sjPlot)
+library(pcalg)
+library(ggplot2)
+library(gridExtra)
+library(lme4)
+library(effects)
+
+
+Sys.setlocale(,"ru_RU")
+
+# basic operations on the dataframe ---------------------------------------
+
+tableau <- read.csv('finall_data_140419.csv')
+
+data <- tableau[tableau$realization_class %in% c('cons', 'inn'),]
+
+data <- na.omit(data)
+
+# file deletion -----------------------------------------------------------
+
+files_to_delete <- c('20140701f-ppp-2', '20140703a-ppp-6', 
+                     '20140703b-mgb-2', '20130627a-nxo-2', 
+                     '20140625a-lgp-4', '20140703a-ppp-2', 
+                     '20140701f-ppp-2', '20130627a-nxo-2', 
+                     '20150715a-nnt-2', '20150715a-nnt-4', 
+                     '20140702e-lso-3', '20140702e-lso-4')
+
+
+# collapsing long files ---------------------------------------------------
+
+# 20140625b-gvp-1  20140625b-gpv-2 ----------------------------------------
+
+margin <- max(data[data$audio == '20140625b-gvp-1',]$position)
+
+data[data$audio == '20140625b-gpv-2',]$position <- margin + data[data$audio == '20140625b-gpv-2',]$position
+
+data[data$audio == '20140625b-gpv-2',]$position
+
+# 20130626c-pfp-1 20130626c-pfp-2 20130626c-pfp-3 -------------------------
+
+margin <- max(data[data$audio == '20130626c-pfp-1',]$position)
+
+data[data$audio == '20130626c-pfp-2',]$position <- margin + data[data$audio == '20130626c-pfp-2',]$position
+
+margin <- max(data[data$audio == '20130626c-pfp-2',]$position)
+
+data[data$audio == '20130626c-pfp-3',]$position <- margin + data[data$audio == '20130626c-pfp-3',]$position
+
+# 20140622c-ans-1a 20140622c-ans-1b 20140622c-ans-1c ----------------------
+
+margin <- max(data[data$audio == '20140622c-ans-1a',]$position)
+
+data[data$audio == '20140622c-ans-1b',]$position <- margin + data[data$audio == '20140622c-ans-1b',]$position
+
+margin <- max(data[data$audio == '20140622c-ans-1b',]$position)
+
+data[data$audio == '20140622c-ans-1c',]$position <- margin + data[data$audio == '20140622c-ans-1c',]$position
+
+# 20150712a-opsh-1 20150712a-opsh-2 20150712a-opsh-3 ----------------------
+
+margin <- max(data[data$audio == '20150712a-opsh-1',]$position)
+
+data[data$audio == '20150712a-opsh-2',]$position <- margin + data[data$audio == '20150712a-opsh-2',]$position
+
+margin <- max(data[data$audio == '20150712a-opsh-2',]$position)
+
+data[data$audio == '20150712a-opsh-3',]$position <- margin + data[data$audio == '20150712a-opsh-3',]$position
+
+
+# 20140629a-nxo-1 20140629a-nxo-2 -----------------------------------------
+
+margin <- max(data[data$audio == '20140629a-nxo-1',]$position)
+
+data[data$audio == '20140629a-nxo-2',]$position <- margin + data[data$audio == '20140629a-nxo-2',]$position
+
+data <- data[! data$audio %in% files_to_delete,]
+
+data$realization_class_bin[data$realization_class == 'inn'] = 0
+data$realization_class_bin[data$realization_class == 'cons'] = 1
+
+b <- 1
+
+k <- 1
+
+for (i in unique(data$audio)){
+  
+  subst <- data[data$audio == i,]
+  
+  k <- c(k, i)
+  
+  b <- c(b, max(subst$position))
+  
+}
+
+info <- data.frame(audio=k, length=b)
+
+data$length <- 0
+
+for (i in unique(data$audio)){
+  
+  dat <- info[info$audio == i,]
+  
+  len <- dat$length
+  
+  data[data$audio == i,]$length <- len
+  
+}
+
+data$scaled_yb <- scale(data$year_of_birth)
+
+data <- na.omit(data)
+
+data$age_group <- data$year_of_birth
+
+data$age_group[data$age_group <= 1940] = '< 1940'
+data$age_group[data$age_group >= 1960] = '> 1960'
+data$age_group[data$age_group <= 1960 & data$age_group >= 1940] = '1940-1960'
+
+data[sapply(data, is.character)] <- lapply(data[sapply(data, is.character)], 
+                                       as.factor)
+
+```
+
+
+### Year of birth
+
+The year of birth is distributed as follows: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+ggplot(data, aes(x=year_of_birth))+
+  geom_histogram(binwidth = 2)+
+  facet_wrap(~sex)+
+  xlab('year of birth')
+```
+
+### Variables: 
+
+<!-- 14 variables (full list in @dobrmd ) -->
+
+For example: 
+
+* A~E: raising of /a/. In the dialect, stressed /a/ has been between palatalized consonants raised to /e/; in the standard, /a/ is retained in this position.
+
+* E~I: raising of yat . In the dialect, stressed etymological (known as yat; assumed pronunciation close mid [??] or diphthong [ie]) between palatalized consonants has been raised to /i/, while in the standard, it has merged with /e/
+
+Distribution of observations per variable across genders: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data, aes(x=var, fill=sex))+
+  geom_histogram(stat='count')+
+  xlab('Variable')
+```
+
+Examination of the lengths of the files (median in red)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+b_d <- data.frame(b)
+
+b_d$b <- as.difftime(b_d$b/1000, units = 'secs')
+
+ggplot(data=b_d, aes(x=b))+
+  scale_x_time()+
+  geom_density()+
+  xlab('Time (in hrs)')+
+  geom_vline(xintercept = median(b_d$b), color="red")
+```
+
+Year of birth and realization class corelation (younger people tent to be less dialect):
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=data, aes(x=year_of_birth, y=realization_class_bin))+
+      geom_smooth(method = "glm", method.args = list(family = "binomial"), se=TRUE, colour="red")+
+      geom_point()+
+      facet_wrap(~sex)
+```
+
+## Analysis: shuffling 
+
+### Examples 
+
+Example plot: 
+
+```{r}
+first_part <-  c(0, 0, 0, 1, 0, 0)
+second_part <-  c(1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+  
+mean(first_part)
+mean(second_part)
+     
+mean(first_part) - mean(second_part)     
+```
+
+```{r, echo=FALSE}
+
+subtr <- c()
+    
+    all_entries <- c(first_part, second_part)
+    
+    true_val <- mean(first_part) - mean(second_part)
+    
+    for (i in c(1:10000)){
+    
+      all_entries <- sample(all_entries)
+      
+      first_part_shaken <- all_entries[1:length(first_part)]
+      
+      second_part_shaken <- tail(all_entries, -length(first_part))
+      
+      subtr <- c(subtr, mean(first_part_shaken) - mean(second_part_shaken))
+    
+    }
+    
+    ggplot()+
+    aes(subtr)+
+    geom_bar()+
+    xlab('substaction product')+
+    geom_vline(xintercept = true_val, color = "orange", size=1)
+    
+    
+```
+
+Function for the first experiment: 
+
+```{r}
+first_test <- function(subset, n=10000, filename='none', var='none'){
+ 
+  subtr <- c()
+  
+    
+  first_part <-  subset[subset$position < 600000,]$realization_class_bin
+  second_part <-  subset[subset$position > 600000*3,]$realization_class_bin
+  
+  if (length(first_part) >= 5 && length(second_part) >= 5){
+    
+    all_entries <- c(first_part, second_part)
+    
+    true_val <- mean(first_part) - mean(second_part)
+    
+    print(true_val)
+    
+    for (i in c(1:n)){
+    
+      all_entries <- sample(all_entries)
+      
+      first_part_shaken <- all_entries[1:length(first_part)]
+      
+      second_part_shaken <- tail(all_entries, -length(first_part))
+      
+      subtr <- c(subtr, mean(first_part_shaken) - mean(second_part_shaken))
+    
+    }
+    
+    ggplot()+
+    aes(subtr)+
+    geom_bar()+
+    xlab('substaction product')+
+    ggtitle(filename)+
+    geom_vline(xintercept = true_val, color = "orange", size=1)
+    
+  }
+  
+}
+  
+```
+
+Example (file -- 20160624c-nfm, variable -- sh):
+
+```{r, echo=FALSE}
+first_test(subset = data[data$audio == "20160624c-nfm" & data$var == 'sh',], filename='20160624c-nfm', var='sh')
+```
+
+Second test (if first test has shown significance):
+
+```{r}
+second_test <- function(substs, n=10000, name='none', var='none'){
+  
+  ks <- c()
+  
+  first_part <-  substs[substs$position < 600000,]$realization_class_bin
+  
+  second_part <-  substs[substs$position > 600000*3,]$realization_class_bin
+
+  for (i in c(1:n)){
+    k = sample(first_part, 1) - sample(second_part, 1)
+    
+    ks <- c(ks, k)
+  }
+  
+
+  ggplot(as.data.frame(table(ks)), aes(x=names(table(ks)), y = Freq)) +
+    geom_bar(stat="identity")+
+    xlab('substraction product')+
+    ggtitle(paste(var, name, 'first part mean', mean(first_part), 'second part mean', mean(second_part), 'quantities:', length(first_part), length(second_part), sep=' '))
+  
+}
+```
+
+Example (file -- 20130702b-nvt, variable -- sh):
+
+```{r, echo=FALSE}
+second_test(substs = data[data$audio == "20160624c-nfm" & data$var == 'sh',], name='20160624c-nfm', var='sh')
+```
+
+### Results
+
+#### Adj
+
+* 20140624e-lso
+
+```{r}
+first_test(subset = data[data$audio == "20140624e-lso" & data$var == 'adj',], filename='20140624e-lso', var='sh')
+```
+
+* 20130702b-nvt  
+
+```{r}
+first_test(subset = data[data$audio == "20130702b-nvt" & data$var == 'adj',], filename='20140624e-lso', var='sh')
+```
+
+* 20130701d-avm
+
+```{r}
+first_test(subset = data[data$audio == "20130701d-avm" & data$var == 'adj',], filename='20130701d-avm', var='sh')
+```
+
+* 20140626c-npo-1
+
+```{r}
+first_test(subset = data[data$audio == "20140626c-npo-1" & data$var == 'adj',], filename='20140626c-npo-1', var='sh')
+```
+
+* 20150715a-nnt-1
+
+```{r}
+first_test(subset = data[data$audio == "20150715a-nnt-1" & data$var == 'adj',], filename='20150715a-nnt-1', var='sh')
+```
+
+* I20130623b1
+
+```{r}
+first_test(subset = data[data$audio == "I20130623b1" & data$var == 'adj',], filename='I20130623b1', var='sh')
+```
+
+* 20160624c-nfm
+
+```{r}
+first_test(subset = data[data$audio == "20160624c-nfm" & data$var == 'adj',], filename='20160624c-nfm', var='sh')
+```
+
+#### Sja-1
+
+* 20140704e-lso-2 
+
+```{r}
+first_test(subset = data[data$audio == "20140704e-lso-2" & data$var == 'adj',], filename='20140704e-lso-2')
+```
+
+#### prep_pron 
+
+* 20130701d-avm
+
+```{r}
+first_test(subset = data[data$audio == "20130701d-avm" & data$var == 'adj',], filename='20130701d-avm')
+```
+
+#### ot 
+
+* 20150712a-ops-1
+
+```{r}
+first_test(subset = data[data$audio == "20150712a-opsh-1" & data$var == 'ot',], filename='20150712a-opsh-1')
+```
+
+#### ei 
+
+* 20130704c-lpp
+
+```{r}
+first_test(subset = data[data$audio == "20130704c-lpp" & data$var == 'ei',], filename='20130704c-lpp')
+```
+
+* 20130701c-epr
+
+```{r}
+first_test(subset = data[data$audio == "20130701c-epr" & data$var == 'ei',], filename='20130701c-epr')
+```
+
+#### sh
+
+
+* 20130702b-nvt
+
+```{r}
+first_test(subset = data[data$audio == "20130702b-nvt" & data$var == 'sh',], filename='20130702b-nvt')
+```
+
+* 20150716b-sek-1
+
+```{r}
+first_test(subset = data[data$audio == "20150716b-sek-1" & data$var == 'sh',], filename='20150716b-sek-1')
+```
+
+* 20160624c-nfm
+
+```{r}
+first_test(subset = data[data$audio == "20160624c-nfm" & data$var == 'sh',], filename='20160624c-nfm')
+```
+
+* 20160630g-ans-1
+
+```{r}
+first_test(subset = data[data$audio == "20160630g-ans-1" & data$var == 'sh',], filename='20160630g-ans-1')
+```
+
+## Analysis: Generalized Linear Models
+
+
+### All the data
+
+Best model choise:
+
+```{r, warning=FALSE, message=FALSE}
+model1 <- glm(realization_class_bin ~ scale(position), data=data, family = binomial)
+
+model2 <- glmer(realization_class_bin ~ scale(position) + (1 | audio/sex/speaker) + (1 | token/var) + (1 | age_group), family = binomial, data=data)
+
+model3 <- glmer(realization_class_bin ~ scale(position) + (1 | audio/sex/speaker) + (1 | token/var) + (1 | year_of_birth), family = binomial, data=data)
+
+model4 <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1 | token/var) + (1 | age_group) + (1 | audio), family = binomial, data=data)
+
+model5 <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1 | token/var) + (1 | year_of_birth) + (1 | audio), family = binomial, data=data)
+
+model6 <- glmer(realization_class_bin ~ scale(position) + (1 | audio/sex/speaker/year_of_birth) + (1 | token/var), family = binomial, data=data)
+
+model7 <- glmer(realization_class_bin ~ scale(position) + (1 | audio/sex/speaker/age_group) + (1 | token/var), family = binomial, data=data)
+
+
+AIC(model1)
+
+AIC(model2)
+
+AIC(model3)
+
+AIC(model4)
+
+AIC(model5)
+
+AIC(model6)
+
+AIC(model7)
+```
+
+
+```{r}
+model_all <- glmer(realization_class_bin ~ scale(position) + (1 | sex/speaker) + (1 | token/var) + (1 | age_group) + (1 | audio), family = binomial, data=data)
+```
+
+```{r, echo=FALSE}
+summary(model_all)
+```
+
+Effects plot:
+
+```{r, echo=FALSE}
+library(sjPlot)
+
+plot_model(model_all, type = "pred", terms = c("position"), se=TRUE)
+```
+
+```{r, echo=FALSE}
+plot(allEffects(model_all))
+```
+
+### Variable, gender and position intercation:
+
+```{r, warning=FALSE}
+model_var <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | speaker) + (1 | token) + (1 | age_group) + (1 | audio), family = binomial, data=data)
+```
+
+```{r, warning=FALSE, message=FALSE}
+model1_sex_pos <- glm(realization_class_bin ~ scale(position):var:sex, data=data, family = binomial)
+
+AIC(model1_sex_pos)
+
+model2_sex_pos  <- glmer(realization_class_bin ~ scale(position):var:sex + (1 | audio/speaker) + (1 | token)  + (1 | age_group), family = binomial, data=data)
+
+AIC(model2_sex_pos )
+
+model3_sex_pos  <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | audio/speaker) + (1 | token)  + (1 | year_of_birth), family = binomial, data=data)
+
+AIC(model3_sex_pos)
+
+model4_sex_pos <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | speaker) + (1 | token) + (1 | age_group) + (1 | audio), family = binomial, data=data)
+
+AIC(model4_sex_pos)
+
+model5_sex_pos <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | speaker) + (1 | token)  + (1 | year_of_birth) + (1 | audio), family = binomial, data=data)
+
+AIC(model5_sex_pos)
+
+model6_sex_pos <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | audio/speaker/year_of_birth) + (1 | token) , family = binomial, data=data)
+
+AIC(model6_sex_pos)
+
+model7_sex_pos <- glmer(realization_class_bin ~ scale(position):var:sex  + (1 | audio/speaker/age_group) + (1 | token) , family = binomial, data=data)
+
+AIC(model7_sex_pos)
+```
+
+The results of the best fitted model:
+
+```{r, echo=FALSE, warning=FALSE}
+summary(model4_sex_pos)
+```
+
+Effects plot:
+
+```{r, echo=FALSE, warning=FALSE}
+plot_model(model4_sex_pos, type = "pred", terms = c("position", 'var', 'sex'), se=TRUE)
+```
+
+### Gender and position interaction:
+
+```{r, warning=FALSE, message=FALSE}
+model1_sex <- glm(realization_class_bin ~ scale(position):sex, data=data, family = binomial)
+
+AIC(model1_sex)
+
+model2_sex <- glmer(realization_class_bin ~ scale(position):sex + (1 | audio/speaker) + (1 | token/var)  + (1 | age_group), family = binomial, data=data)
+
+AIC(model2_sex)
+
+model3_sex <- glmer(realization_class_bin ~ scale(position):sex  + (1 | audio/speaker) + (1 | token/var)  + (1 | year_of_birth), family = binomial, data=data)
+
+AIC(model3_sex)
+
+model4_sex <- glmer(realization_class_bin ~ scale(position):sex  + (1 | speaker) + (1 | token/var)  + (1 | age_group) + (1 | audio), family = binomial, data=data)
+
+AIC(model4_sex)
+
+model5_sex <- glmer(realization_class_bin ~ scale(position):sex  + (1 | speaker) + (1 | token/var)  + (1 | year_of_birth) + (1 | audio), family = binomial, data=data)
+
+AIC(model5_sex)
+
+model6_sex <- glmer(realization_class_bin ~ scale(position):sex  + (1 | audio/speaker/year_of_birth) + (1 | token/var) , family = binomial, data=data)
+
+AIC(model6_sex)
+
+model7_sex <- glmer(realization_class_bin ~ scale(position):sex  + (1 | audio/speaker/age_group) + (1 | token/var) , family = binomial, data=data)
+
+AIC(model7_sex)
+```
+
+Summary of the best model (4th):
+
+```{r, echo=FALSE}
+summary(model4_sex)
+```
+
+Plot of the results:
+
+```{r, echo=FALSE, warning=FALSE}
+plot_model(model4_sex, type = "pred", terms = c("position", 'sex'), se=TRUE)
+```
+
+### Position and age-group interaction:
+
+```{r, warning=FALSE, message=FALSE}
+model4_year <- glmer(realization_class_bin ~ scale(position):age_group:sex  + (1 | speaker) + (1 | token) + (1 | var) + (1 | audio), family = binomial, data=data)
+
+AIC(model4_year)
+```
+
+```{r}
+summary(model4_year)
+```
+
